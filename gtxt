@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+# fname = "sample.txt"
+# somefile = File.open(fname, "w")
+# somefile.puts "Hello file!"
+# somefile.close
+
+#cssfname = "generated_code.css"
+#cssFile = File.open(cssfname, "w")
+
+zIndex_counter = 100
+
+$stdin.each_line do |item|
+	#item.split(" ")
+	item.to_s
+	item.split(" ")
+	puts item[0]
+#	puts item.length
+
+
+	#cssFile.puts 'content test ' + item
+	# item[0].split(".")
+	# cssFile.puts '#' + item[0][0] + ' {'
+	# cssFile.puts '\tposition: absolute;'
+	# cssFile.puts '\tbackground: url(' + item[0] + ') no-repeat;'
+	# cssFile.puts '\tleft: 0px;'
+	# cssFile.puts '\ttop: 0px;'
+	# cssFile.puts '\twidth: ' + item[1] + 'px;'
+	# cssFile.puts '\theight: ' + item[2] + 'px;'
+	# cssFile.puts '\tz-Index: ' + zIndex_counter.to_s
+	# cssFile.puts '\tvisibility: hidden;'
+	# cssFile.puts '}'
+
+	zIndex_counter += 20
+
+end
+
+#cssFile.close

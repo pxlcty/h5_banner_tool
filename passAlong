@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+
+
+require 'dimensions'
+require 'json'
+require 'securerandom'
+
+ $stdin.each_line do |item|
+ 	puts "pass along has recievied " + item
+ 	image_width = Dimensions.width(item)
+ end
+
+
+module Uploader
+  def self.call(env)
+    body = Dimensions(env["rack.input"])
+
+    # Handle the upload
+    token = SecureRandom.hex(20)
+    path  = File.join(UPLOAD_PATH, token)
+#    File.open(path, "wb") { |file| file.write body.read }
+
+
+    # Return the width and height as JSON
+    [
+	    200,
+	    {"Content-Type" => "application/json"},
+	    [JSON.dump(
+		    "token"  => token,
+		    "width"  => body.width,
+		    "height" => body.height      )]    ]
+  end
+end
+
+
+#passAlong = $stdin.gets.chomp
+# $stdin.each_line do |item|
+# 	puts "pass along has recievied " + item
+# 	image_width = Dimensions.width(item)
+# end
+#puts passAlong
+#puts "extra text?"

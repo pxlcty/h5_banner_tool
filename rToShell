@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+
+#puts 'rToShell file is here'
+
+#cmd = "echo 'this is an echo test.'"
+#system(cmd)
+
+$stdin.each_line do |item|
+# 	puts "pass along has recievied " + item
+	imageHeight = "mdls -name kMDItemPixelHeight " + item.to_s
+	imageWidth = "mdls -name kMDItemPixelWidth " + item.to_s
+	myH = Kernel.`(imageHeight)
+	myW = Kernel.`(imageWidth)
+
+	myH.slice! "kMDItemPixelHeight = "
+	myH.chomp!
+	myW.slice! "kMDItemPixelWidth = "
+	myW.chomp!
+
+	item.chomp!
+
+	print item + " " + myW + " " + myH + "\n"
+
+end
+
+## THIS WORKS ON INDIVIDUAL & HARDCODED FILE ::
+# imageHeight = "mdls -name kMDItemPixelHeight " + "billing_cut.png"
+# imageWidth = "mdls -name kMDItemPixelWidth " + "billing_cut.png"
+# myH = Kernel.`(imageHeight)
+# myW = Kernel.`(imageWidth)
+#
+# myH.slice! "kMDItemPixelHeight = "
+# myW.slice! "kMDItemPixelWidth = "
+# puts myW
+# puts myH
+
+
+
+
+# imageHeight = "mdls -name kMDItemPixelHeight " + "billing_cut.png"
+# feebackHeight = system(imageHeight)
+#
+# imageWidth = "mdls -name kMDItemPixelWidth " + "billing_cut.png"
+# feebackWidth = system(imageWidth)
+#
+# puts "does return values exist for this"
+# puts "dimensions are : " + feebackWidth.to_s + " " + feebackHeight.to_s
+
+
+
+#value = %x( echo 'hi' )
+#value = %x[ #{cmd} ]
+
+#Kernel#{`cmd`}
+#Kernel#`cmd`
+
+#$stdin.each_line do |item|
+# 	puts "pass along has recievied " + item
+
+#end

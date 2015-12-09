@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+require 'Dimensions'
+
+file_name = $stdin.gets.chomp
+
+
+image_width = Dimensions.width(file_name)
+image_height = Dimensions.height(file_name)
+
+file_ref = file_name.split(".")
+
+file_ref << image_width
+file_ref << image_height
+
+file_ref.each { |x| puts x}
+#file_ref.[file_ref.length + 1] = image_width
+#file_ref.[file_ref.length + 2] = image_height
+# print "Filename: " + file_ref[0] + "\n"
+# print "File type: " + file_ref[1] + "\n"
+#
+# print "image width: " + Dimensions.width(file_name).to_s + " pixels\n"
+# print "image height: " + Dimensions.height(file_name).to_s + " pixels\n"

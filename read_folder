@@ -1,0 +1,22 @@
+#!/usr/bin/env ruby
+
+#folder_location = $stdin.gets.chomp
+folder_location = $stdin.gets.chomp
+
+#puts folder_location
+dir_list = Dir.entries(folder_location)
+
+#removes first 3 entries in the folder . .. and .DS_Store
+dir_list.shift(3)
+
+ dir_list.each do |item|
+ 	if item.include? ' '
+ 	puts "WARNING! file " + item + " has a space character in it's name. Revise and run again."
+ 	# need to add what file in alpha numerical order this is.
+	# option to overwrite ' ' with anotherCharacter?
+ 	else
+ 		puts item
+ 		#puts folder_location.to_s + "/" + item.to_s
+
+ 	end
+ end

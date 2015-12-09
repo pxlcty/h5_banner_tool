@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+#passAlong = $stdin.gets
+
+#puts "what's transferred? " + passAlong
+
+ $stdin.each_line do |item|
+ 	puts "pass along has recievied " + item
+ 	#image_width = Dimensions.width(item)
+ end
+
+
+#puts passAlong
+#puts "extra text?"
