@@ -1,19 +1,28 @@
 #!/usr/bin/env ruby
 
-#folder_location = $stdin.gets.chomp
-folder_location = $stdin.gets.chomp
 
-#puts folder_location
+incomingStream = $stdin.gets.chomp # single one line input :
+#folder_location = ARGV[3] # Getting the 4th argument of ARGV passed along?
+incomingStream.slice! '["'
+incomingStream.slice! '"]'
+#incomingStream[0..-3]!
+user_input = incomingStream.split("\", \"")
+#puts "folder :: " + user_input[3]
+folder_location = user_input[3]
+puts user_input
+#puts "so ARGV would work too? " + ARGV[0]
 dir_list = Dir.entries(folder_location)
 
 #removes first 3 entries in the folder . .. and .DS_Store
 dir_list.shift(3)
 
+
  dir_list.each do |item|
+
  	if item.include? ' '
  	puts "WARNING! file " + item + " has a space character in it's name. Revise and run again."
  	# need to add what file in alpha numerical order this is.
-	# option to overwrite ' ' with anotherCharacter?
+ # option to overwrite ' ' with anotherCharacter?
  	else
  		puts item
  		#puts folder_location.to_s + "/" + item.to_s

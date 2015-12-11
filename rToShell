@@ -4,23 +4,26 @@
 
 #cmd = "echo 'this is an echo test.'"
 #system(cmd)
-
+@i = 0
 $stdin.each_line do |item|
 # 	puts "pass along has recievied " + item
-	imageHeight = "mdls -name kMDItemPixelHeight " + item.to_s
-	imageWidth = "mdls -name kMDItemPixelWidth " + item.to_s
-	myH = Kernel.`(imageHeight)
-	myW = Kernel.`(imageWidth)
+	if item.include? "."
+		imageHeight = "mdls -name kMDItemPixelHeight " + item.to_s
+		imageWidth = "mdls -name kMDItemPixelWidth " + item.to_s
+		myH = Kernel.`(imageHeight)
+		myW = Kernel.`(imageWidth)
 
-	myH.slice! "kMDItemPixelHeight = "
-	myH.chomp!
-	myW.slice! "kMDItemPixelWidth = "
-	myW.chomp!
+		myH.slice! "kMDItemPixelHeight = "
+		myH.chomp!
+		myW.slice! "kMDItemPixelWidth = "
+		myW.chomp!
 
-	item.chomp!
+		item.chomp!
 
-	print item + " " + myW + " " + myH + "\n"
-
+		print item + " " + myW + " " + myH + "\n"
+	else
+		puts item
+	end
 end
 
 ## THIS WORKS ON INDIVIDUAL & HARDCODED FILE ::

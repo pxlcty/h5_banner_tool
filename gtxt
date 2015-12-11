@@ -5,34 +5,48 @@
 # somefile.puts "Hello file!"
 # somefile.close
 
-#cssfname = "generated_code.css"
-#cssFile = File.open(cssfname, "w")
+# if !defined? unitInfo
+# 	unitInfo = ["300", "250", "showName", "campaign"]
+# end
 
+
+
+
+#cssfname = "generated_code.css"
+cssfname = ""
+htmlfname = ""
+jsfname = ""
+#cssFile = File.open(cssfname, "w")
+unitname = ""
 zIndex_counter = 100
 
-$stdin.each_line do |item|
-	#item.split(" ")
-	item.to_s
-	item.split(" ")
-	puts item[0]
-#	puts item.length
+$stdin.each_line.with_index do |item, counter|
+	record = item.split(" ")
+	if counter == 0
+		unitname = item[0]
+	elsif counter == 1
+		unitname += "_" + item[0]
+	elsif counter == 2
+		unitname += "x" + item[0]
+		cssfname = unitname + ".css"
+		htmlfname = unitname + ".html"
+		jsfname = unitname + ".js"
+		cssFile = File.open(cssfname, "w")
+	elsif record.length == 3 # filename, width, height
+		file_name = record[0].partition(".")
+		cssFile.puts '#' + file_name[0].to_s + ' {'
+		cssFile.puts "\tposition: absolute;"
+		cssFile.puts "\tbackground: url(" + record[0] + ") no-repeat;"
+		cssFile.puts "\tleft: 0px;"
+		cssFile.puts "\ttop: 0px;"
+		cssFile.puts "\twidth: " + record[1].to_s + 'px;'
+		cssFile.puts "\theight: " + record[2].to_s + 'px;'
+		cssFile.puts "\tz-index: " + zIndex_counter.to_s + ";"
+		cssFile.puts "\tvisibility: hidden;"
+		cssFile.puts "}\n\n"
 
-
-	#cssFile.puts 'content test ' + item
-	# item[0].split(".")
-	# cssFile.puts '#' + item[0][0] + ' {'
-	# cssFile.puts '\tposition: absolute;'
-	# cssFile.puts '\tbackground: url(' + item[0] + ') no-repeat;'
-	# cssFile.puts '\tleft: 0px;'
-	# cssFile.puts '\ttop: 0px;'
-	# cssFile.puts '\twidth: ' + item[1] + 'px;'
-	# cssFile.puts '\theight: ' + item[2] + 'px;'
-	# cssFile.puts '\tz-Index: ' + zIndex_counter.to_s
-	# cssFile.puts '\tvisibility: hidden;'
-	# cssFile.puts '}'
-
-	zIndex_counter += 20
-
+		zIndex_counter += 20
+	end
 end
 
-#cssFile.close
+cssFile.close

@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+
+class String
+  def is_number?
+    !!(self =~ /\A[-+]?[0-9]+(\.[0-9]+)?\z/)
+  end
+end
+
+$throw_an_error = false
+
+def inputParamsError (error_ref)
+	$throw_an_error = true
+	puts "an error occured with param no. " + error_ref.to_s + "\nPlease use --help for more info."
+
+end
+def pass_along
+	#print ARGV
+	inputData = ARGV
+	#fakeArr = ["one", "two", "three"]
+	print inputData
+
+end
+
+
+helpInfo = "\nPut Arguments in following order :\n\n\t1. banner_name\n\t2. Banner Width (default 300)\n\t3. Banner Height (default 250)\n\t4. Directory to work in. (default pulls in pwd)\n\n"
+
+
+if ARGV[0] == "--help"
+	puts helpInfo
+else
+	#ARGV[0] # check for alphanumeric only + "-_" or whatever else might be accepted.
+	ARGV[0].nil? ? inputParamsError(0) : nil
+	ARGV[1].is_number? ? nil : inputParamsError(1)
+	ARGV[2].is_number? ? nil : inputParamsError(2)
+
+	if ARGV.length > 3
+		destination = ARGV[3]
+		locationExists = File.directory?(destination)
+		if !locationExists
+			inputParamsError(3)
+		end
+	else
+		ARGV[3] = Kernel.`("pwd")
+		ARGV[3].chomp!
+	end
+#	puts "directory is : " + ARGV[3]
+	$throw_an_error ? nil : pass_along
+end
