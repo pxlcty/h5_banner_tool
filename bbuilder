@@ -1,0 +1,253 @@
+#!/usr/bin/env ruby
+
+require 'rubygems'
+require 'json'
+
+# alteration for def is_number? ::
+class String
+  def is_number?
+    !!(self =~ /\A[-+]?[0-9]+(\.[0-9]+)?\z/)
+  end
+end
+
+@default_unit_width = 300
+@default_unit_height = 250
+@css_bg_color = '#000'
+@css_border_color = '#000'
+@zindex_separator = 20
+@css_toplayer_zindex = 500
+@thisFileName = ARGV[0].to_s + "_" + ARGV[1].to_s + "x" + ARGV[2].to_s
+@renameFiles = false
+@updatedFileame = ""
+@imageFileLengthMax = 40
+
+@assetsFilesPath = '/Users/michael/.myBash/template.json'
+
+@cssIDvisible = 'visible'
+
+@image_collection = []
+# receive data :
+#first 4 data snippets
+# 1 unitName
+# 2 unitWidth
+# 3 unitHeight
+# 4 folder location >> pwd is default if none is given.
+# 5 remove x & y offset numbers
+
+# command line samples :
+# > bannerBuild testProject 728 90 pwd
+#
+# > bannerBuild testProject 728 90
+
+#puts "length of ARGV is " + ARGV.length.to_s
+def read_folder_content
+#	puts 'next step is to read folder content.'
+#	puts "directory is : " + ARGV[3]
+	folder_location = ARGV[3]
+	dir_list = Dir.entries(folder_location)
+
+	dir_list.shift(3) #removes first 3 entries in the folder . .. and .DS_Store
+
+	dir_list.each do |item|
+
+		if item.include? ' '
+			puts "WARNING! file " + item + " has a space character in it's name. Revise and run again."
+			# need to add what file in alpha numerical order this is.
+			# option to overwrite ' ' with anotherCharacter?
+		elsif item.include? '.css'
+			puts "there's a css file here. It will be ignored by the script."
+		elsif item.include? '.js'
+			puts "there's a js file here. It will be ignored by the script."
+		elsif item.include? '.html'
+			puts "there's a html file here. It will be ignored by the script."
+		else
+			image_data = Array.new(7)
+			# this gets width & height as per Unix system request :
+
+			imageHeight = "mdls -name kMDItemPixelHeight " + item.to_s
+			imageWidth = "mdls -name kMDItemPixelWidth " + item.to_s
+			myH = Kernel.`(imageHeight)
+			myW = Kernel.`(imageWidth)
+			myH.slice! "kMDItemPixelHeight = "
+			myH.chomp!
+			myW.slice! "kMDItemPixelWidth = "
+			myW.chomp!
+			item.chomp!
+
+			# this separates zindex, x & y positions according to file name
+			undescore_counter = (0 ... item.length).find_all { |i| item[i,1] == '_' }
+			image_data[0] = item[0, undescore_counter[0]] # layer z index
+			image_data[1] = item[ ( undescore_counter[0] + 1 ), ((undescore_counter[1] - undescore_counter[0]) -1) ] # x position from left edge
+			image_data[2] = item[(undescore_counter[1] + 1), ((undescore_counter[2] - undescore_counter[1])-1)] # y position from top edge
+			image_data[3] = myW # width of unit
+			image_data[4] = myH # Height of unit
+			image_data[5] = item[(undescore_counter[2] + 1)..-5] # short file name
+			image_data[6] = item[(undescore_counter[2] + 1)..-1] # full file name
+			@image_collection.push(image_data)
+
+			if @renameFiles
+				simpleName = item.gsub(/[^\w.]/, "")
+				newFileName = simpleName.gsub(/(_-?\d+){2}/, "") # twice by finding '_' :  if there's a minus sign, remove digits.
+				if newFileName.length > @imageFileLengthMax
+					newFileName = newFileName[0..@imageFileLengthMax] + newFileName[-4..-1]
+				end
+				newFileName.downcase!
+				puts newFileName
+				File.rename(item, newFileName)
+				@updatedFileame = newFileName
+			end
+			image_data[6] = @updatedFileame
+			image_data[5] = @updatedFileame[0..-5]
+		end
+	end
+	@css_toplayer_zindex += @image_collection.length * @zindex_separator
+	puts @image_collection.length
+
+	generate_files
+end
+
+def generate_files
+	puts "generating files"
+	@template_hash = get_json_data
+	#puts @template_hash.keys
+	create_css_file
+	create_js_file
+	create_html_file
+end
+
+def get_json_data # big fucking note to self. Find where bbuilder and files are located to refer back to!!!
+	#json = File.read('/Users/michael/.myBash/template.json')
+	json = File.read('./template.json')
+	obj = JSON.parse(json)
+	# puts obj.keys
+	# puts obj["css-template"]
+#	pp obj
+end
+
+def create_css_file
+	cssfname = @thisFileName + ".css"
+	cssFile = File.open(cssfname, "w")
+	zIndex_counter = 100
+
+	@template_hash["css-template"]["default-classes"].sub! '__bg-color__', @css_bg_color
+	@template_hash["css-template"]["banner-wrapper"].sub! '__width__', ARGV[1].to_s
+	@template_hash["css-template"]["banner-wrapper"].sub! '__height__', ARGV[2].to_s
+	@template_hash["css-template"]["banner-wrapper"].sub! '__border-color__', @css_border_color
+	@template_hash["css-template"]["top-clicker"].sub! '__top-layer-zindex__', @css_toplayer_zindex.to_s
+
+	cssFile.puts @template_hash["css-template"]["all-inclusive"]
+	cssFile.puts @template_hash["css-template"]["body"]
+	cssFile.puts @template_hash["css-template"]["default-classes"]
+	cssFile.puts @template_hash["css-template"]["banner-wrapper"]
+	cssFile.puts @template_hash["css-template"]["top-clicker"]
+
+	@image_collection.each do |item|
+		cssFile.puts '#' + item[5] + ' {'
+		cssFile.puts "\tposition: absolute;"
+		cssFile.puts "\tbackground: url(" + item[6] + ") no-repeat;"
+		cssFile.puts "\tleft: " + item[1] + "px;"
+		cssFile.puts "\ttop: " + item[2] + "px;"
+		cssFile.puts "\twidth: " + item[3] + 'px;'
+		cssFile.puts "\theight: " + item[4] + 'px;'
+		cssFile.puts "\tz-index: " + zIndex_counter.to_s + ";"
+		cssFile.puts "\tvisibility: " + @cssIDvisible + ';'
+		cssFile.puts "}\n\n"
+		zIndex_counter += @zindex_separator
+	end
+	cssFile.close
+end
+
+def create_js_file
+	#puts "creating js file..."
+	jsfname = @thisFileName + ".js"
+	jsFile = File.open(jsfname, "w")
+
+	jsFile.puts @template_hash["js-template"]["setup-top"]
+
+	@image_collection.each do |item|
+		tempName = item[5].to_s
+		tempName = tempName[3..-1]
+		jsFile.puts "\tvar " + tempName + " = document.getElementById('" + item[5] + "');"
+	end
+	jsFile.puts "\n\n"
+	jsFile.puts @template_hash["js-template"]["setup-bottom"]
+
+	jsFile.close
+end
+
+def create_html_file
+	puts "creating html file..."
+	htmlfname = @thisFileName + ".html"
+	htmlFile = File.open(htmlfname, "w")
+
+	@template_hash["html-template"]["header"].sub! '__width__', ARGV[1].to_s
+	@template_hash["html-template"]["header"].sub! '__height__', ARGV[2].to_s
+	@template_hash["html-template"]["header"].sub! '__show-name__', ARGV[0].to_s
+	@template_hash["html-template"]["header-css"].sub! '__filename__', @thisFileName
+	@template_hash["html-template"]["closing"].sub! '__filename__', @thisFileName
+	htmlFile.puts @template_hash["html-template"]["header"]
+	htmlFile.puts @template_hash["html-template"]["header-css"]
+	htmlFile.puts @template_hash["html-template"]["header-enabler"]
+	htmlFile.puts @template_hash["html-template"]["header-gslibrary"]
+	htmlFile.puts @template_hash["html-template"]["head-body"]
+
+	@image_collection.each do |item|
+		htmlFile.puts "\t\t\t<div id=\"" + item[5] + "\"></div>"
+	end
+	htmlFile.puts "\t\t</div>\n\n"
+	htmlFile.puts "\t\t<div id=\"preloaded-images\">\n"
+	@image_collection.each do |item|
+		htmlFile.puts "\t\t\t<img src=\"" + item[6] + " \"width=\"1\" height=\"1\" alt=\"\" />\n"
+	end
+	htmlFile.puts "\t\t</div>"
+	htmlFile.puts @template_hash["html-template"]["closing"]
+	htmlFile.close
+end
+
+def inputParamsError (error_ref)
+	$throw_an_error = true
+	case error_ref
+	when 1, 2
+		puts "\tWidth and or Height were not whole numbers.\n\tPlease provide width & height as numbers separated by a space.\n\tDefault is 300 250\n\t--help for more info."
+	when 3
+		puts "Directory doesn't exist. Check spelling or leave blank to invoke pwd"
+	else
+		puts "an error occured with param #" + error_ref.to_s + "\nPlease use --help for more info."
+	end
+end
+
+
+$throw_an_error = false
+helpInfo = "\nPut Arguments in following order :\n\n\t1. banner_name\n\t2. Banner Width (default 300)\n\t3. Banner Height (default 250)\n\t4. Directory to work in. (default pulls in pwd)\n\n"
+
+if ARGV[0] == "--help"
+	puts helpInfo
+else
+	#ARGV[0] # check for alphanumeric only + "-_" or whatever else might be accepted.
+	ARGV[0].nil? ? inputParamsError(0) : nil
+#	ARGV[1].is_number? ? nil : inputParamsError(1)
+#	ARGV[2].is_number? ? nil : inputParamsError(2)
+	if ARGV[1].nil?
+		ARGV[1] = @default_unit_width
+	else
+		ARGV[1].is_number? ? nil : inputParamsError(1)
+	end
+	if ARGV[2].nil?
+		ARGV[2] = @default_unit_height
+	else
+		ARGV[2].is_number? ? nil : inputParamsError(2)
+	end
+
+	if ARGV.length > 3
+		destination = ARGV[3]
+		locationExists = File.directory?(destination)
+		if !locationExists
+			inputParamsError(3)
+		end
+	else
+		ARGV[3] = Kernel.`("pwd")
+		ARGV[3].chomp!
+	end
+
+	$throw_an_error ? nil : read_folder_content
+end
