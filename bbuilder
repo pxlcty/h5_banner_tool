@@ -17,11 +17,35 @@ end
 @zindex_separator = 20
 @css_toplayer_zindex = 500
 @thisFileName = ARGV[0].to_s + "_" + ARGV[1].to_s + "x" + ARGV[2].to_s
-@renameFiles = false
+@renameFiles = true
 @updatedFileame = ""
 @imageFileLengthMax = 40
 
-@assetsFilesPath = '/Users/michael/.myBash/template.json'
+
+#ENV["PWD"]
+
+#puts File.dirname(__FILE__)
+#puts File.dirname("bbuilder")
+#unixCall = 'DIR="$( cd "$( dirname "${cd[0]}" )" && pwd )"'
+
+#puts Kernel.`(unixCall)
+#appLocationTest = Kernel.`(unixCall)
+
+
+
+#puts appLocationTest
+
+#puts File.expand_path(File.dirname(File.dirname("bbuilder")))
+
+#puts Dir.pwd
+#puts File.dirname("bbuilder")
+#puts File.expand_path(File.dirname("bbuilder"))
+
+@assetsFilesPath = File.dirname(__FILE__).to_s + "/template.json"
+puts @assetsFilesPath
+#'/Users/michael/.myBash/template.json'
+
+
 
 @cssIDvisible = 'visible'
 
@@ -49,7 +73,6 @@ def read_folder_content
 	dir_list.shift(3) #removes first 3 entries in the folder . .. and .DS_Store
 
 	dir_list.each do |item|
-
 		if item.include? ' '
 			puts "WARNING! file " + item + " has a space character in it's name. Revise and run again."
 			# need to add what file in alpha numerical order this is.
@@ -83,6 +106,8 @@ def read_folder_content
 			image_data[4] = myH # Height of unit
 			image_data[5] = item[(undescore_counter[2] + 1)..-5] # short file name
 			image_data[6] = item[(undescore_counter[2] + 1)..-1] # full file name
+			image_data[7] = ""
+
 			@image_collection.push(image_data)
 
 			if @renameFiles
@@ -92,12 +117,20 @@ def read_folder_content
 					newFileName = newFileName[0..@imageFileLengthMax] + newFileName[-4..-1]
 				end
 				newFileName.downcase!
-				puts newFileName
+				if newFileName[3] == '_'
+					puts "we have a problem with this one : "
+				end
+				#puts newFileName
 				File.rename(item, newFileName)
 				@updatedFileame = newFileName
+
+				image_data[6] = @updatedFileame
+				image_data[5] = @updatedFileame[0..-5]
+				image_data[7] = @updatedFileame[3..-5]
 			end
-			image_data[6] = @updatedFileame
-			image_data[5] = @updatedFileame[0..-5]
+			#puts image_data[5]
+			puts image_data[7]
+
 		end
 	end
 	@css_toplayer_zindex += @image_collection.length * @zindex_separator
@@ -117,7 +150,8 @@ end
 
 def get_json_data # big fucking note to self. Find where bbuilder and files are located to refer back to!!!
 	#json = File.read('/Users/michael/.myBash/template.json')
-	json = File.read('./template.json')
+	#json = File.read('./template.json')
+	json = File.read(@assetsFilesPath)
 	obj = JSON.parse(json)
 	# puts obj.keys
 	# puts obj["css-template"]
@@ -142,7 +176,7 @@ def create_css_file
 	cssFile.puts @template_hash["css-template"]["top-clicker"]
 
 	@image_collection.each do |item|
-		cssFile.puts '#' + item[5] + ' {'
+		cssFile.puts '#' + item[7] + ' {'
 		cssFile.puts "\tposition: absolute;"
 		cssFile.puts "\tbackground: url(" + item[6] + ") no-repeat;"
 		cssFile.puts "\tleft: " + item[1] + "px;"
@@ -167,7 +201,7 @@ def create_js_file
 	@image_collection.each do |item|
 		tempName = item[5].to_s
 		tempName = tempName[3..-1]
-		jsFile.puts "\tvar " + tempName + " = document.getElementById('" + item[5] + "');"
+		jsFile.puts "\tvar " + item[7] + " = document.getElementById('" + item[7] + "');"
 	end
 	jsFile.puts "\n\n"
 	jsFile.puts @template_hash["js-template"]["setup-bottom"]
